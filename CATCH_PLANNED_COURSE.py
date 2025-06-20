@@ -19,11 +19,49 @@ class PlannedCourse:
         url = LOGIN.ZUCC.PlanCourageURL + "?xh=" + self.account.account_data["username"]
         header = LOGIN.ZUCC.InitHeader
         header["Referer"] = url
+        
+        # 获取选课页面
         response = self.account.session.get(url=url, headers=header)
-        """以下两行代码可以用先解析以下，看下当前是否在我们需要的页面"""
-        # self.account.soup = BeautifulSoup(response.text, "lxml")
-        # print(self.account.soup)
+        
+        # 使用BeautifulSoup解析页面
+        soup = BeautifulSoup(response.text, 'lxml')
+        
+        # 1. 提取专业名称
+        zymc_input = soup.find('input', {'name': 'zymc'})
+        if zymc_input:
+            zymc_value = zymc_input.get('value', '')
+            print("提取到专业名称:", zymc_value)
+        else:
+            print("未找到专业名称输入框")
+            return None
+
+        # 2. 构造POST请求参数
+        post_data = {
+            'zymc': zymc_value,         # 专业名称
+            'Button5': '本专业选课',     # 触发按钮
+            'xx': '',                    # 通常为年级信息（留空）
+            'txtPjUrl': '',              # 可选课程路径（留空）
+        }
+        
+        # 添加必要的ASP.NET隐藏字段
+        hidden_fields = soup.find_all('input', type='hidden')
+        for field in hidden_fields:
+            name = field.get('name', '')
+            value = field.get('value', '')
+            if name:  # 只添加有名称的字段
+                post_data[name] = value
+
+        # 3. 提交选课请求
+        submit_url = url  # POST目标地址（同当前页面）
+        response = self.account.session.post(
+            url=submit_url,
+            headers=header,
+            data=post_data
+        )
+
+        print("选课请求提交状态:", response.status_code)
         return response
+
 
     def catch_course(self):
         for info in self.course_list:
