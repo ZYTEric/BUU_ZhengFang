@@ -1,6 +1,7 @@
-import LOGIN
+﻿import LOGIN
 from bs4 import BeautifulSoup
 import time
+from wvpn_login import jwxt_url
 
 
 class OutPlannedCourse:
@@ -25,7 +26,7 @@ class OutPlannedCourse:
         self.account.soup = BeautifulSoup(response.text, "lxml")
 
     def choose_profession(self):
-        url = "https://jwxt.buu.edu.cn/zylb.aspx?xh=" + self.account.account_data["username"]
+        url = jwxt_url("https://jwxt.buu.edu.cn/zylb.aspx?xh=" + self.account.account_data["username"])
         header = LOGIN.ZUCC.InitHeader
         header["Referer"] = LOGIN.ZUCC.xsmain + "?xh=" + self.account.account_data['username']
         response = self.account.session.post(url=url, headers=header)
@@ -36,13 +37,13 @@ class OutPlannedCourse:
                      "xx": "zx",
                      "__VIEWSTATE": soup.find(name="input", id="__VIEWSTATE")["value"]
                      }
-        print("编号  学院")
+        print("编号   学院")
         for item in lists[0]:
             try:
                 print(item.get("value") + "   " + item.text)
             except BaseException:
                 pass
-        print("请输入学院编号(由于选课网原因非顺序排列！！)\t\t例如输入05,则进入商学院")
+        print("请输入学院编号!(由于选课网原因非顺序排列！！)\t\t例如输入05,则进入商学院")
         college = input(">>>")
         post_data["DropDownList2"] = str(college)
         for item in lists[1]:
@@ -65,7 +66,7 @@ class OutPlannedCourse:
                 n = n + 1
             except BaseException:
                 pass
-        print("请在输入正确的专业编号")
+        print("请在输入正确的专业编号！")
         num = input(">>>")
         self.profession = tmp_class[int(num) - 1].code + "主修专业||" + year
 
@@ -86,15 +87,16 @@ class OutPlannedCourse:
         for num, link in enumerate(links[1:-1]):
             tds = link.find_all("td")
             print("编号：" + str(num + 1) + "\t课程名称: " + tds[1].text)
-            url = "http://" + LOGIN.ZUCC.DOMAIN + "/clsPage/xsxjs.aspx?" + "xkkh=" + \
-                  tds[1].find("a").get("onclick").split("=")[1][0:-3] + "&xh=" + self.account.account_data["username"]
+            raw_url = "https://jwxt.buu.edu.cn/clsPage/xsxjs.aspx?" + "xkkh=" + \
+                      tds[1].find("a").get("onclick").split("=")[1][0:-3] + "&xh=" + self.account.account_data["username"]
+            url = jwxt_url(raw_url)
             # print(url)
             self.urls.append(url)
         n = input("输入编号：")
         url = self.urls[int(n) - 1]
         self.obj_url = url
         header = LOGIN.ZUCC.InitHeader
-        header["Referer"] = "https://jwxt.buu.edu.cn/xs_main.aspx?xh=" + self.account.account_data['username']
+        header["Referer"] = jwxt_url("https://jwxt.buu.edu.cn/xs_main.aspx?xh=" + self.account.account_data['username'])
         item_response = self.account.session.get(url=url, headers=header)
         # print(item_response.url)
         item_soup = BeautifulSoup(item_response.text, "lxml")
@@ -144,6 +146,9 @@ class OutPlannedCourse:
 
     def run(self):
         response = self.enter_out_planned_course()
+        if response is None:
+            print("无法进入跨专业选课页面")
+            return
         self.choose_course_class(response)
         self.catch_course()
 

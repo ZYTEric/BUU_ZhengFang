@@ -1,4 +1,4 @@
-# ``
+﻿# ``
 from bs4 import BeautifulSoup
 import time
 import MENU
@@ -12,7 +12,6 @@ class info:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 NetType/WIFI MicroMessenger/7.0.20.1781(0x6700143B) WindowsWechat(0x63090c11) XWEB/11581 Flue",
     }
     public_course_page_main = "https://jwxt.buu.edu.cn/xf_xsqxxxk.aspx"
-
 
 class PublicCourse:
     def __init__(self, account: LOGIN.Account):
@@ -78,7 +77,7 @@ class PublicCourse:
         number = str(
             int(
                 input(
-                    "输入想要抢的课程编号(课程编号即为第一项序号)\n退出程序输入数字‘0’\n>>>"
+                    "输入想要抢的课程编号(课程编号即为第一项序号)\n退出程序输入数字'0'\n>>>"
                 )
             )
             + 1
@@ -107,7 +106,7 @@ class PublicCourse:
         POSTData["kcmcGrid$ctl" + number.zfill(2) + "$xk"] = "on"
         POSTData["kcmcGrid$ctl" + number.zfill(2) + "$jc"] = "on"
         while True:
-            print("当前正在抢 " + self.course_list[int(number) - 2].name)
+            print("当前正在抢" + self.course_list[int(number) - 2].name)
             response = self.account.session.post(url=url, headers=header, data=POSTData)
             if self.num_of_selected_courses(response) == (self.num_of_selected + 1):
                 print(

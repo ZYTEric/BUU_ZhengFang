@@ -1,3 +1,6 @@
+﻿import _ensure_deps
+_ensure_deps.ensure_dependencies()
+
 import sys
 import RW_ACCOUNT
 import MENU
@@ -8,10 +11,10 @@ import LOGIN
 import os
 import time
 import OCR_CODE
+import wvpn_login
 
 
 def begin_catch_course():
-    # 修改一下提示
     catch_course_dic = {
         "1": "培养方案选课",
         "2": "跨专业选课(已废弃)",
@@ -41,6 +44,31 @@ def begin_catch_course():
 
 
 if __name__ == "__main__":
+
+    # ====== 网络环境选择 ======
+    print("\033[1;36m请选择当前网络环境：\033[0m")
+    print("[1] 校内（直连教务系统）")
+    print("[2] 校外（通过 WebVPN 访问）")
+    while True:
+        choice = input(">>> ").strip()
+        if choice == "1":
+            print("已选择：校内模式")
+            break
+        elif choice == "2":
+            print("已选择：校外模式")
+            print()
+            wvpn_session = wvpn_login.authenticate()
+            if wvpn_session is None:
+                print("\033[1;31mWebVPN 登录失败，程序退出\033[0m")
+                sys.exit()
+            wvpn_login.configure_jwxt_urls()
+            import LOGIN
+            LOGIN._wvpn_session = wvpn_session
+            break
+        else:
+            print("请输入 1 或 2")
+
+    # ====== 原有逻辑 ======
     with open("status.txt", "r") as f:
         status = f.read()
     if status == "" or int(status) - time.time() > 600:
@@ -57,7 +85,7 @@ if __name__ == "__main__":
             f.write(str(int(time.time())))
     print(
         "\033[1;36m       欢迎来到正方教务系统抢课助手\033[0m\n本程序主要自动登录+爬取课程信息+发送选课数据包进行抢课"
-        "\n\033[1;31m第一次运行时记得先设置账号密码,之后运行就不需要设置了(存放在account.json中哦~)\033[0m"
+        "\n\033[1;31m第一次运行时记得先设置账号密码！之后运行就不需要设置了(存放在account.json中哦~)\033[0m"
     )
     init_dic = {"1": "设置账号密码", "2": "开始抢课", "0": "退出"}
     init_menu = MENU.MENU(init_dic)

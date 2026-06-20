@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+﻿# -*- coding: UTF-8 -*-
 import binascii
 import time
 import os
@@ -23,9 +23,16 @@ class ZUCC:
 
 
 # Account为登录用的账户
+_wvpn_session = None   # 由 main.py 在 WebVPN 认证成功后注入
+
 class Account:
     def __init__(self, name=None, password=None):
-        self.session = requests.Session()
+        # 校外模式：复用已通过 WebVPN 认证的 session
+        if _wvpn_session is not None:
+            self.session = _wvpn_session
+            self.session.verify = False
+        else:
+            self.session = requests.Session()
         self.soup = None
         self.POSTDate = {'__LASTFOCUS': "", '__VIEWSTATE': "随机码", '__VIEWSTATEGENERATOR': "9BD98A7D",
                          '__EVENTTARGET': "", '__EVENTARGUMENT': "", 'txtUserName': "", 'TextBox2': "",
@@ -51,8 +58,17 @@ class Account:
             if img.get("id") == "icode":
                 useimg = img.get("src")
                 print(useimg)
-        #联大的登录需要带header和cookies
-        image_response = self.session.get(ZUCC.CheckCodeURL + useimg,cookies=self.session.cookies.get_dict(),headers=ZUCC.InitHeader, stream=True)
+        # 构建验证码图片的完整URL
+        # 校外模式下WebVPN返回的图片路径已是WebVPN域名下的相对路径
+        # 校内模式下使用ZUCC.CheckCodeURL拼接
+        if useimg.startswith('/https/') or useimg.startswith('/http/'):
+            img_url = "https://wvpn.buu.edu.cn" + useimg
+        elif useimg.startswith('/'):
+            img_url = ZUCC.CheckCodeURL.rstrip('/') + useimg
+        else:
+            img_url = ZUCC.CheckCodeURL + useimg
+        image_response = self.session.get(img_url, cookies=self.session.cookies.get_dict(),
+                                          headers=ZUCC.InitHeader, stream=True)
         image = image_response.content
         try:
             with open(os.getcwd() + "/code.jpg", "wb") as code_jpg:

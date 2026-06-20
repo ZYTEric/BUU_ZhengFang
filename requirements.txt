@@ -1,7 +1,11 @@
-beautifulsoup4==4.12.3
-numba
-numpy
-Pillow==11.1.0
-Requests==2.32.3
-rsa==4.9
+﻿# BUU_ZhengFang 抢课助手依赖
+requests
+beautifulsoup4
 lxml
+rsa
+numpy
+Pillow
+numba
+pycryptodome
+browser-cookie3
+qrcode

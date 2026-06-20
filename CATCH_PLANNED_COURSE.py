@@ -1,7 +1,8 @@
-import LOGIN
+﻿import LOGIN
 from bs4 import BeautifulSoup
 import time
 import re
+from wvpn_login import jwxt_url
 
 class PlannedCourse:
     def __init__(self, account):
@@ -32,8 +33,10 @@ class PlannedCourse:
             zymc_value = zymc_input.get('value', '')
             print("提取到专业名称:", zymc_value)
         else:
-            print("未找到专业名称输入框")
-            return None
+            print("未找到专业名称输入框，尝试使用页面已有数据...")
+            # 可能已经在计划内选课页面，无需再次提交专业名称
+            # 直接返回当前response用于爬取课程列表
+            return response
 
         # 2. 构造POST请求参数
         post_data = {
@@ -107,8 +110,9 @@ class PlannedCourse:
         for num, link in enumerate(links[1:-1]):
             tds = link.find_all("td")
             print("编号：" + str(num + 1) + "\t课程名称: " + tds[1].text)
-            url = "https://" + LOGIN.ZUCC.DOMAIN + "/clsPage/xsxjs.aspx?" + "xkkh=" + \
-                  tds[1].find("a").get("onclick").split("=")[1][0:-3] + "&xh=" + self.account.account_data["username"]
+            raw_url = "https://jwxt.buu.edu.cn/clsPage/xsxjs.aspx?" + "xkkh=" + \
+                      tds[1].find("a").get("onclick").split("=")[1][0:-3] + "&xh=" + self.account.account_data["username"]
+            url = jwxt_url(raw_url)
             # print(url)
             self.urls.append(url)
 
@@ -116,7 +120,7 @@ class PlannedCourse:
         url = self.urls[int(n) - 1]
         self.obj_url = url
         header = LOGIN.ZUCC.InitHeader
-        header["Referer"] = "https://jwxt.buu.edu.cn/xs_main.aspx?xh=" + self.account.account_data['username']
+        header["Referer"] = jwxt_url("https://jwxt.buu.edu.cn/xs_main.aspx?xh=" + self.account.account_data['username'])
         item_response = self.account.session.get(url=url, headers=header)
         # print(BeautifulSoup(item_response.text, 'lxml'))
         item_soup = BeautifulSoup(item_response.text, "lxml")
@@ -135,11 +139,11 @@ class PlannedCourse:
         return
 
     def run(self):
-        # 进入计划内选课界面
         response = self.enter_planned_course()
-        # 爬取课程信息
+        if response is None:
+            print("无法进入计划内选课页面")
+            return
         self.choose_course_class(response)
-        # 模拟发包抢课
         self.catch_course()
 
 
