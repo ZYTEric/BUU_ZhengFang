@@ -6,7 +6,7 @@ This product includes software developed by:
   - wengine-vpn-decryptor (https://github.com/xiaobei97/wengine-vpn-decryptor)
     Used in wengine_url.py for Wengine WebVPN URL encryption/decryption.
 
-  - zyteric/WebVPN-Converter (https://github.com/zyteric/WebVPN-Converter)
+  - ZYTEric/WebVPN-Converter (https://github.com/ZYTEric/WebVPN-Converter)
     MIT License. wengine_url.py 中的 BUU WebVPN URL 转换实现基于此项目。
     Copyright (c) 2025 zyteric
 
